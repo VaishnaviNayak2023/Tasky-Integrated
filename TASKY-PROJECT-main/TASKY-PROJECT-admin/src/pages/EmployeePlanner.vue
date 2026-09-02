@@ -1022,7 +1022,7 @@ const calendarDays = computed<CalendarDay[]>(() => {
       JS:
       Sunday = 0
       Monday = 1
-  
+
       Convert to:
       Monday = 0
       Sunday = 6
@@ -1503,9 +1503,9 @@ function priorityColor(priority: string): string {
 function saveAllUpdates() {
   /*
       Here you will later call your backend API.
-  
+
       Example:
-  
+
       await axios.put(
         '/api/work-logs',
         {

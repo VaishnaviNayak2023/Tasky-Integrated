@@ -200,6 +200,30 @@
         </div>
       </div>
 
+      <!-- DAILY CONSISTENCY -->
+      <DailyConsistency
+        :tasks-assigned-today="tasksAssignedToday"
+        :tasks-completed-today="tasksCompletedToday"
+      />
+
+      <!-- TASK QUALITY METRICS -->
+      <TaskQualityMetrics
+        :reopened-tasks="reopenedTasks"
+        :revision-requests="revisionRequests"
+        :first-time-completion="firstTimeCompletion"
+        :avg-subtask-accuracy="avgSubtaskAccuracy"
+      />
+
+      <!-- PRIORITY PERFORMANCE -->
+      <PriorityPerformance
+        :priority-data="priorityPerformanceData"
+      />
+
+      <!-- ACHIEVEMENTS & STREAKS -->
+      <Achievements
+        :achievements="achievementsData"
+      />
+
       <!-- PERFORMANCE INSIGHTS -->
       <q-card flat bordered class="q-pa-lg">
         <PerformanceInsights
@@ -272,6 +296,10 @@ import PerformanceInsights from '../insights/PerformanceInsights.vue';
 import ExportDialog from '../dialogs/ExportDialog.vue';
 import ShareReportDialog from '../dialogs/ShareReportDialog.vue';
 import SavedFilterManager from '../filters/SavedFilterManager.vue';
+import DailyConsistency from '../components/DailyConsistency.vue';
+import TaskQualityMetrics from '../components/TaskQualityMetrics.vue';
+import PriorityPerformance from '../components/PriorityPerformance.vue';
+import Achievements from '../components/Achievements.vue';
 
 // Composable
 const {
@@ -289,6 +317,14 @@ const {
   totalCompletedTasks,
   totalDelayedTasks,
   avgCompletionTime,
+  tasksAssignedToday,
+  tasksCompletedToday,
+  reopenedTasks,
+  revisionRequests,
+  firstTimeCompletion,
+  avgSubtaskAccuracy,
+  priorityPerformanceData,
+  achievementsData,
   currentFilter,
   loadDashboardData,
   refreshData,

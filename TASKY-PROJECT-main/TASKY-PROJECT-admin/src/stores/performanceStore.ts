@@ -31,6 +31,16 @@ export const usePerformanceStore = defineStore('performance', () => {
   const error = ref<string | null>(null);
   const currentFilters = ref<Record<string, any>>({});
 
+  // Additional state for new components
+  const tasksAssignedToday = ref(0);
+  const tasksCompletedToday = ref(0);
+  const reopenedTasks = ref(0);
+  const revisionRequests = ref(0);
+  const firstTimeCompletion = ref(0);
+  const avgSubtaskAccuracy = ref(0);
+  const priorityPerformanceData = ref<any[]>([]);
+  const achievementsData = ref<any[]>([]);
+
   // Computed
   const productivityScore = computed(() => dashboardSummary.value?.productivityScore ?? 0);
   const completionRate = computed(() => dashboardSummary.value?.completionRate ?? 0);
@@ -70,6 +80,16 @@ export const usePerformanceStore = defineStore('performance', () => {
   const actionableInsights = computed(() =>
     performanceInsights.value.filter((insight) => insight.actionable)
   );
+
+  // Additional computed properties
+  const tasksAssignedTodayComputed = computed(() => tasksAssignedToday.value);
+  const tasksCompletedTodayComputed = computed(() => tasksCompletedToday.value);
+  const reopenedTasksComputed = computed(() => reopenedTasks.value);
+  const revisionRequestsComputed = computed(() => revisionRequests.value);
+  const firstTimeCompletionComputed = computed(() => firstTimeCompletion.value);
+  const avgSubtaskAccuracyComputed = computed(() => avgSubtaskAccuracy.value);
+  const priorityPerformanceDataComputed = computed(() => priorityPerformanceData.value);
+  const achievementsDataComputed = computed(() => achievementsData.value);
 
   // Actions
   async function fetchDashboardSummary(filters?: Record<string, any>) {
@@ -194,6 +214,16 @@ export const usePerformanceStore = defineStore('performance', () => {
     error,
     currentFilters,
 
+    // Additional state
+    tasksAssignedToday,
+    tasksCompletedToday,
+    reopenedTasks,
+    revisionRequests,
+    firstTimeCompletion,
+    avgSubtaskAccuracy,
+    priorityPerformanceData,
+    achievementsData,
+
     // Computed
     productivityScore,
     completionRate,
@@ -208,6 +238,16 @@ export const usePerformanceStore = defineStore('performance', () => {
     inProgressGoals,
     criticalInsights,
     actionableInsights,
+
+    // Additional computed
+    tasksAssignedTodayComputed,
+    tasksCompletedTodayComputed,
+    reopenedTasksComputed,
+    revisionRequestsComputed,
+    firstTimeCompletionComputed,
+    avgSubtaskAccuracyComputed,
+    priorityPerformanceDataComputed,
+    achievementsDataComputed,
 
     // Actions
     fetchDashboardSummary,

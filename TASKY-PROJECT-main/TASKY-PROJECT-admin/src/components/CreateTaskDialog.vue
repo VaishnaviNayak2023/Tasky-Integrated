@@ -7,7 +7,7 @@
         <q-btn icon="close" flat round dense v-close-popup />
       </q-card-section>
 
-      <q-card-section class="q-pt-md">
+      <q-card-section class="q-pt-md q-pa-lg">
         <q-form @submit="onSubmit" class="q-gutter-md">
           <q-select
             v-model="form.project_id"
@@ -41,17 +41,6 @@
           <div class="row q-col-gutter-md">
             <div class="col-6">
               <q-select
-                v-model="form.status"
-                :options="statusOptions"
-                label="Status"
-                outlined
-                dense
-                emit-value
-                map-options
-              />
-            </div>
-            <div class="col-6">
-              <q-select
                 v-model="form.priority"
                 :options="priorityOptions"
                 label="Priority"
@@ -61,10 +50,49 @@
                 map-options
               />
             </div>
+            <div class="col-6">
+              <q-select
+                v-model="form.assignee_ids"
+                :options="resourceOptions"
+                label="Assign To *"
+                outlined
+                dense
+                multiple
+                use-chips
+                emit-value
+                map-options
+                :rules="[(val) => (val && val.length > 0) || 'Please assign at least one employee']"
+                hint="Select employees to assign this task to"
+              />
+            </div>
           </div>
 
           <div class="row q-col-gutter-md">
-            <div class="col-4">
+            <div class="col-6">
+              <q-input
+                v-model="form.start_date"
+                label="Start Date"
+                type="date"
+                outlined
+                dense
+                stack-label
+              />
+            </div>
+            <div class="col-6">
+              <q-input
+                v-model="form.deadline"
+                label="Deadline *"
+                type="date"
+                outlined
+                dense
+                stack-label
+                :rules="[(val) => !!val || 'Deadline is required']"
+              />
+            </div>
+          </div>
+
+          <div class="row q-col-gutter-md">
+            <div class="col-6">
               <q-input
                 v-model="form.expected_effort"
                 label="Expected Effort (Hours)"
@@ -74,7 +102,7 @@
                 min="0"
               />
             </div>
-            <div class="col-4">
+            <div class="col-6">
               <q-input
                 v-model="form.resources_needed"
                 label="Resources Needed"
@@ -85,39 +113,14 @@
                 :rules="[(val) => val > 0 || 'Must be > 0']"
               />
             </div>
-            <div class="col-4">
-              <q-input
-                v-model="form.deadline"
-                label="Deadline"
-                type="date"
-                outlined
-                dense
-                stack-label
-                :rules="[(val) => !!val || 'Deadline is required']"
-              />
-            </div>
           </div>
 
-          <q-select
-            v-model="form.assignee_ids"
-            :options="resourceOptions"
-            label="Assign To *"
-            outlined
-            dense
-            multiple
-            use-chips
-            emit-value
-            map-options
-            :rules="[(val) => (val && val.length > 0) || 'Please assign at least one employee']"
-            hint="Select employees to assign this task to"
-          />
-
           <q-toggle
-            v-model="form.is_visible"
-            label="Visible to Employees"
+            v-model="form.auto_assign"
+            label="Auto-assign Best Resource"
             color="primary"
             dense
-            hint="When disabled, task is hidden from employee dashboards"
+            hint="Let the system automatically assign the best available resource"
           />
 
           <q-slider
@@ -204,8 +207,10 @@ const form = ref({
   progress: 0,
   expected_effort: null as number | null,
   resources_needed: 1,
+  start_date: '',
   deadline: '',
   assignee_ids: [] as number[],
+  auto_assign: false,
   is_visible: true,
 });
 
@@ -229,10 +234,12 @@ watch(
           progress: props.taskToEdit.progress || 0,
           expected_effort: props.taskToEdit.expected_effort,
           resources_needed: props.taskToEdit.resources_needed || 1,
+          start_date: props.taskToEdit.start_date ? props.taskToEdit.start_date.split('T')[0] : '',
           deadline: props.taskToEdit.deadline ? props.taskToEdit.deadline.split('T')[0] : '',
           assignee_ids: props.taskToEdit.assignees
             ? props.taskToEdit.assignees.map((a: any) => a.id)
             : [],
+          auto_assign: false,
           is_visible:
             props.taskToEdit.is_visible !== undefined ? props.taskToEdit.is_visible : true,
         };
@@ -251,8 +258,10 @@ watch(
           progress: 0,
           expected_effort: null,
           resources_needed: 1,
+          start_date: '',
           deadline: '',
           assignee_ids: [],
+          auto_assign: false,
           is_visible: true,
         };
       }

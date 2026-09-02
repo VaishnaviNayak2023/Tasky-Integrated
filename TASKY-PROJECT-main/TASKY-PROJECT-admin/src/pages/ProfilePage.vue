@@ -204,9 +204,13 @@ onMounted(() => {
 });
 
 const avgProgress = computed(() => {
-  if (projectStore.projects.length === 0) return 0;
-  const total = projectStore.projects.reduce((sum: number, p: any) => sum + (p.progress || 0), 0);
-  return Math.round(total / projectStore.projects.length);
+  if (!projectStore.projects || projectStore.projects.length === 0) return 0;
+  const total = projectStore.projects.reduce((sum: number, p: any) => {
+    const progress = typeof p.progress === 'number' ? p.progress : 0;
+    return sum + progress;
+  }, 0);
+  const result = Math.round(total / projectStore.projects.length);
+  return isNaN(result) ? 0 : result;
 });
 
 const totalTeamSize = computed(() => {

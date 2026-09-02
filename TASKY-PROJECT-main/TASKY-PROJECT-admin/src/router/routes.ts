@@ -67,6 +67,16 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/pages/NotificationsPage.vue'),
         meta: { requiresRole: 'pm' },
       },
+      {
+        path: 'performance',
+        component: () => import('@/pages/MyPerformancePage.vue'),
+        meta: { requiresRole: 'pm' },
+      },
+      {
+        path: 'performance/priority-report',
+        component: () => import('@/pages/DetailedPriorityReportPage.vue'),
+        meta: { requiresRole: 'pm' },
+      },
     ],
   },
   {

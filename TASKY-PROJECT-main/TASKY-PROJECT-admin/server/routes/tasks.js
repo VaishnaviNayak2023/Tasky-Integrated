@@ -4,6 +4,8 @@ import {
   analyzeImpact,
   runGlobalAutoScheduler,
 } from '../services/schedulingEngine.js';
+import { createNotification } from '../utils/notifications.js';
+import { safeCallProjectProgress } from '../ensureSchema.js';
 const router = Router();
 
 export default function taskRoutes(pool) {
@@ -221,10 +223,21 @@ export default function taskRoutes(pool) {
         resources_needed,
       } = req.body;
 
+      console.log('Create task request body:', req.body);
+
       if (!project_id || !title || !deadline) {
         return res
           .status(400)
           .json({ success: false, error: 'Project, title, and deadline are required' });
+      }
+
+      // Validate project exists
+      const [projectCheck] = await pool.execute(
+        'SELECT id FROM project WHERE id = ? AND org_id = ?',
+        [project_id, orgId]
+      );
+      if (projectCheck.length === 0) {
+        return res.status(400).json({ success: false, error: 'Invalid project' });
       }
 
       // Calculate per-person effort
@@ -248,6 +261,7 @@ export default function taskRoutes(pool) {
       );
 
       const taskId = result.insertId;
+      console.log('Task created with ID:', taskId);
 
       // Auto-assign if requested
       if (auto_assign) {
@@ -258,6 +272,7 @@ export default function taskRoutes(pool) {
             'INSERT INTO task_assignment (task_id, user_id, assigned_by) VALUES (?, ?, ?)',
             [taskId, bestResource.user_id, pmId],
           );
+          console.log('Auto-assigned to user:', bestResource.user_id);
         }
       }
       // Manual assignment
@@ -267,17 +282,26 @@ export default function taskRoutes(pool) {
             'INSERT INTO task_assignment (task_id, user_id, assigned_by) VALUES (?, ?, ?)',
             [taskId, userId, pmId],
           );
+          console.log('Assigned task to user:', userId);
         }
+      } else {
+        console.log('No assignees provided for task');
       }
 
       // Update project progress
-      await pool.execute('CALL sp_update_project_progress(?)', [project_id]);
+      try {
+        await pool.execute('CALL sp_update_project_progress(?)', [project_id]);
+      } catch (progressError) {
+        console.error('Error updating project progress:', progressError);
+        // Don't fail the request if progress update fails
+      }
 
       const [newTask] = await pool.execute('SELECT * FROM task WHERE id = ?', [taskId]);
+      console.log('Returning created task:', newTask[0]);
       res.json({ success: true, task: newTask[0] });
     } catch (error) {
       console.error('Create task error:', error);
-      res.status(500).json({ success: false, error: 'Server error' });
+      res.status(500).json({ success: false, error: error.message || 'Server error' });
     }
   });
 

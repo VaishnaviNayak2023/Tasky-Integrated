@@ -29,14 +29,16 @@
       <div class="column items-end">
         <div class="row items-center q-gutter-md q-mb-md">
           <q-input
-            v-model="filters.search"
+            :model-value="filters.search"
+            @update:model-value="handleSearchChange"
             outlined
             dense
             rounded
             bg-color="white"
             placeholder="Search tasks, descriptions..."
             style="width: 320px"
-            @update:model-value="applyFilters"
+            clearable
+            @clear="handleSearchChange('')"
           >
             <template v-slot:prepend>
               <q-icon name="search" />
@@ -275,6 +277,7 @@ const {
   STATUS_OPTIONS: statusOptions,
   PRIORITY_OPTIONS: priorityOptions,
   applyFilters,
+  handleSearchChange,
   clearFilters,
   logout,
   openCreateDialog,

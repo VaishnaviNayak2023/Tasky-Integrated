@@ -34,6 +34,9 @@ export function useProjectsPage() {
   const rowsPerPage = ref(5);
   const currentPage = ref(1);
 
+  // Debounced search
+  let searchTimeout: NodeJS.Timeout | null = null;
+
   const hasActiveFilters = computed(() => {
     return (
       filters.value.search !== '' ||
@@ -54,6 +57,16 @@ export function useProjectsPage() {
   const applyFilters = () => {
     currentPage.value = 1;
     projectStore.fetchProjects(filters.value);
+  };
+
+  const handleSearchChange = (value: string) => {
+    if (searchTimeout) {
+      clearTimeout(searchTimeout);
+    }
+    searchTimeout = setTimeout(() => {
+      filters.value.search = value;
+      applyFilters();
+    }, 300);
   };
 
   const clearFilters = () => {
@@ -157,6 +170,7 @@ export function useProjectsPage() {
 
     // Functions
     applyFilters,
+    handleSearchChange,
     clearFilters,
     logout,
     openCreateDialog,

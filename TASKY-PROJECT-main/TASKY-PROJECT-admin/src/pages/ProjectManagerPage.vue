@@ -18,13 +18,16 @@
       </div>
       <div class="row items-center q-gutter-sm">
         <q-input
-          v-model="searchQuery"
+          :model-value="searchQuery"
+          @update:model-value="handleSearch"
           outlined
           dense
           rounded
           bg-color="white"
           placeholder="Search attention items & logs..."
           style="width: 250px"
+          clearable
+          @clear="handleSearch('')"
         >
           <template v-slot:prepend>
             <q-icon name="search" />
@@ -100,6 +103,8 @@
       style="flex: 0 0 auto"
     >
       <q-tab name="overview" label="Overview" icon="dashboard" />
+      <q-tab name="scheduling" label="Smart Scheduler" icon="schedule" />
+      <q-tab name="insights" label="AI Insights" icon="psychology" />
     </q-tabs>
 
     <q-tab-panels
@@ -111,9 +116,10 @@
       <!-- Overview Tab -->
       <q-tab-panel name="overview" class="q-pa-none">
         <div class="row q-col-gutter-md" style="height: 100%; min-height: 0">
-          <!-- Needs Attention Column (Left) -->
-          <div class="col-6" style="height: 100%; display: flex; flex-direction: column">
-            <q-card class="full-height flex column">
+          <!-- Left Column -->
+          <div class="col-6" style="height: 100%; display: flex; flex-direction: column; gap: 16px">
+            <!-- Needs Attention -->
+            <q-card class="flex column" style="flex: 1 1 0">
               <q-card-section class="bg-red-1 text-red-9 q-pb-sm">
                 <div class="row items-center justify-between">
                   <div class="row items-center">
@@ -236,6 +242,14 @@
                 </div>
               </q-card-section>
             </q-card>
+
+            <!-- Daily Consistency Widget -->
+            <DailyConsistencyWidget
+              :team-completion-rate="teamConsistencyData.teamCompletionRate"
+              :active-members="teamConsistencyData.activeMembers"
+              :weekly-trend="teamConsistencyData.weeklyTrend"
+              :top-performers="teamConsistencyData.topPerformers"
+            />
           </div>
 
           <!-- Team Members Column (Right) -->
@@ -296,6 +310,16 @@
           </div>
         </div>
       </q-tab-panel>
+
+      <!-- Scheduling Tab -->
+      <q-tab-panel name="scheduling" class="q-pa-none">
+        <SchedulingPanel />
+      </q-tab-panel>
+
+      <!-- AI Insights Tab -->
+      <q-tab-panel name="insights" class="q-pa-none">
+        <AIInsightsPanel />
+      </q-tab-panel>
     </q-tab-panels>
 
     <!-- Employee Performance Dialog -->
@@ -310,6 +334,9 @@ import { useAuthStore } from '../stores/authStore';
 import { useDashboardStore } from '../stores/dashboardStore';
 import StatCard from '../components/StatCard.vue';
 import EmployeePerformanceReport from '../components/EmployeePerformanceReport.vue';
+import SchedulingPanel from '../components/pm/SchedulingPanel.vue';
+import DailyConsistencyWidget from '../components/pm/DailyConsistencyWidget.vue';
+import AIInsightsPanel from '../components/pm/AIInsightsPanel.vue';
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -319,6 +346,38 @@ const searchQuery = ref('');
 const selectedEmployee = ref<any>(null);
 const showPerformanceDialog = ref(false);
 const activeTab = ref('overview');
+
+// Mock data for Daily Consistency Widget
+const teamConsistencyData = ref({
+  teamCompletionRate: 78,
+  activeMembers: 12,
+  weeklyTrend: [
+    { label: 'Mon', rate: 85 },
+    { label: 'Tue', rate: 72 },
+    { label: 'Wed', rate: 90 },
+    { label: 'Thu', rate: 65 },
+    { label: 'Fri', rate: 78 },
+    { label: 'Sat', rate: 45 },
+    { label: 'Sun', rate: 30 },
+  ],
+  topPerformers: [
+    { id: 1, name: 'John Smith', assigned: 5, completed: 5, rate: 100 },
+    { id: 2, name: 'Sarah Johnson', assigned: 4, completed: 4, rate: 100 },
+    { id: 3, name: 'Mike Wilson', assigned: 6, completed: 5, rate: 83 },
+  ],
+});
+
+// Debounced search
+let searchTimeout: NodeJS.Timeout | null = null;
+
+const handleSearch = (value: string) => {
+  if (searchTimeout) {
+    clearTimeout(searchTimeout);
+  }
+  searchTimeout = setTimeout(() => {
+    searchQuery.value = value;
+  }, 300);
+};
 
 onMounted(() => {
   console.log('Project Manager Dashboard mounted');

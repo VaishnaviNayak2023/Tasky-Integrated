@@ -474,6 +474,10 @@
       :projects-list="projectsList"
       :updating="updating"
       :reviewing="reviewing"
+      :get-task-by-id="getTaskById"
+      :get-project-by-id="getProjectById"
+      :get-employee-by-id="getEmployeeById"
+      :get-progress-updates-by-task="getProgressUpdatesByTask"
       @update:show-create-task-dialog="showCreateTaskDialog = $event"
       @update:show-task-dialog="showTaskDialog = $event"
       @update:show-update-progress-dialog="showUpdateProgressDialog = $event"
@@ -514,6 +518,11 @@ const {
   fetchFromDatabase,
   loadPendingReviews,
   loadReviewHistory,
+  createSelfAssignedTask,
+  updateTaskProgress,
+  submitForReview,
+  approveReview,
+  requestChanges,
 } = useEmployeeDashboard();
 
 // Dialog state
@@ -598,33 +607,55 @@ function openReviewDialog(review: any) {
 
 // Business logic functions
 async function createSelfAssignedTask() {
-  // Implementation will be moved to composable
-  console.log('Create self-assigned task:', newTask.value);
-  showCreateTaskDialog.value = false;
+  const success = await createSelfAssignedTask(newTask.value);
+  if (success) {
+    showCreateTaskDialog.value = false;
+    newTask.value = {
+      title: '',
+      description: '',
+      projectId: '',
+      deadline: '',
+      expectedEffort: 8,
+      priority: 'medium',
+    };
+  }
 }
 
 async function updateTaskProgress() {
-  // Implementation will be moved to composable
-  console.log('Update task progress:', selectedTask.value);
-  showUpdateProgressDialog.value = false;
+  const success = await updateTaskProgress(
+    selectedTask.value.id,
+    progressUpdate.value,
+    statusUpdate.value,
+    hoursSpent.value
+  );
+  if (success) {
+    showUpdateProgressDialog.value = false;
+  }
 }
 
 async function submitForReview() {
-  // Implementation will be moved to composable
-  console.log('Submit for review:', selectedTask.value);
-  showSubmitReviewDialog.value = false;
+  const success = await submitForReview(
+    selectedTask.value.id,
+    completionComment.value,
+    selectedReviewer.value
+  );
+  if (success) {
+    showSubmitReviewDialog.value = false;
+  }
 }
 
 async function approveReview() {
-  // Implementation will be moved to composable
-  console.log('Approve review:', selectedReviewTask.value);
-  showReviewDialog.value = false;
+  const success = await approveReview(selectedReviewTask.value.id, reviewComment.value);
+  if (success) {
+    showReviewDialog.value = false;
+  }
 }
 
 async function requestChanges() {
-  // Implementation will be moved to composable
-  console.log('Request changes:', selectedReviewTask.value);
-  showReviewDialog.value = false;
+  const success = await requestChanges(selectedReviewTask.value.id, reviewComment.value);
+  if (success) {
+    showReviewDialog.value = false;
+  }
 }
 </script>
 

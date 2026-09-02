@@ -76,14 +76,16 @@
     <!-- Toolbar -->
     <div class="row items-center justify-between q-mb-md" style="flex: 0 0 auto">
       <q-input
-        v-model="filters.search"
+        :model-value="filters.search"
+        @update:model-value="handleSearchChange"
         outlined
         dense
         rounded
         bg-color="white"
         placeholder="Search projects..."
         style="width: 250px"
-        @update:model-value="applyFilters"
+        clearable
+        @clear="handleSearchChange('')"
       >
         <template v-slot:prepend>
           <q-icon name="search" />
@@ -271,6 +273,7 @@ const {
   PROJECT_PRIORITY_OPTIONS: projectPriorityOptions,
   PROJECT_SORT_OPTIONS: projectSortOptions,
   applyFilters,
+  handleSearchChange,
   clearFilters,
   logout,
   openCreateDialog,

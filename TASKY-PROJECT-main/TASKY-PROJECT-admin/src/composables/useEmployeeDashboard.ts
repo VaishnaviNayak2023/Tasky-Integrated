@@ -1,6 +1,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { useAuthStore } from '../stores/authStore';
 import { useTaskStore } from '../stores/taskStore';
+import { useQuasar } from 'quasar';
 import { taskService, projectService, userService, workLogService } from '../services/apiClient';
 
 /**
@@ -10,6 +11,7 @@ import { taskService, projectService, userService, workLogService } from '../ser
 export function useEmployeeDashboard() {
   const authStore = useAuthStore();
   const taskStore = useTaskStore();
+  const $q = useQuasar();
 
   // Direct database storage
   const myTasks = ref<any[]>([]);
@@ -99,6 +101,32 @@ export function useEmployeeDashboard() {
       0,
     );
 
+    // Calculate workload
+    const workload = empTasks.reduce((acc: number, t: any) => {
+      const effort = t.expected_effort || 8;
+      const progress = t.progress || 0;
+      return acc + (effort * (100 - progress) / 100);
+    }, 0);
+
+    const isOverloaded = workload > 40; // 40 hours per week threshold
+
+    // Calculate upcoming deadlines
+    const upcomingDeadlines = empTasks
+      .filter((t: any) => t.status !== 'completed' && t.deadline)
+      .map((t: any) => {
+        const deadline = new Date(t.deadline);
+        const today = new Date();
+        const daysUntil = Math.ceil((deadline.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+        return { task: t, daysUntil };
+      })
+      .filter((item: any) => item.daysUntil >= 0)
+      .sort((a: any, b: any) => a.daysUntil - b.daysUntil)
+      .slice(0, 5);
+
+    // Check daily update pending
+    const todayStr = today.toISOString().split('T')[0];
+    const dailyUpdatePending = !workLogs.value.some((log: any) => log.log_date === todayStr);
+
     analytics.value = {
       totalTasks: empTasks.length,
       completedTasks: completed,
@@ -106,6 +134,10 @@ export function useEmployeeDashboard() {
       notStartedTasks: notStarted,
       hoursLogged: hoursLogged,
       overdueTasks: overdueTasks.length,
+      workload: workload,
+      isOverloaded: isOverloaded,
+      upcomingDeadlines: upcomingDeadlines,
+      dailyUpdatePending: dailyUpdatePending,
     };
   }
 
@@ -124,7 +156,10 @@ export function useEmployeeDashboard() {
    */
   async function loadPendingReviews() {
     if (currentEmployee.value?.id) {
-      pendingReviews.value = await taskStore.fetchPendingReviews(Number(currentEmployee.value.id));
+      const response = await taskService.getPendingReviews(currentEmployee.value.id);
+      if (response.success) {
+        pendingReviews.value = response.data || [];
+      }
     }
   }
 
@@ -133,7 +168,146 @@ export function useEmployeeDashboard() {
    */
   async function loadReviewHistory() {
     if (currentEmployee.value?.id) {
-      reviewHistory.value = await taskStore.fetchReviewHistory(Number(currentEmployee.value.id));
+      const response = await taskService.getReviewHistory(currentEmployee.value.id);
+      if (response.success) {
+        reviewHistory.value = response.data || [];
+      }
+    }
+  }
+
+  /**
+   * Create self-assigned task
+   */
+  async function createSelfAssignedTask(taskData: any) {
+    if (!currentEmployee.value?.id) return false;
+
+    try {
+      const payload = {
+        ...taskData,
+        assignee_ids: [currentEmployee.value.id],
+        created_by: currentEmployee.value.id,
+      };
+
+      const response = await taskService.createEmployeeTask(payload);
+      if (response.success) {
+        $q.notify({ type: 'positive', message: 'Task created successfully' });
+        await fetchFromDatabase();
+        return true;
+      } else {
+        $q.notify({ type: 'negative', message: response.error || 'Failed to create task' });
+        return false;
+      }
+    } catch (error: any) {
+      $q.notify({ type: 'negative', message: error.message || 'Error creating task' });
+      return false;
+    }
+  }
+
+  /**
+   * Update task progress
+   */
+  async function updateTaskProgress(taskId: string | number, progress: number, status: string, hoursSpent: number) {
+    try {
+      const response = await taskService.updateEmployeeTask(taskId, {
+        progress,
+        status,
+      });
+
+      if (response.success) {
+        // Create work log entry
+        if (hoursSpent > 0) {
+          await workLogService.create({
+            task_id: taskId,
+            user_id: currentEmployee.value?.id,
+            log_date: new Date().toISOString().split('T')[0],
+            hours_spent: hoursSpent,
+            status: 'completed',
+          });
+        }
+
+        $q.notify({ type: 'positive', message: 'Progress updated successfully' });
+        await fetchFromDatabase();
+        return true;
+      } else {
+        $q.notify({ type: 'negative', message: response.error || 'Failed to update progress' });
+        return false;
+      }
+    } catch (error: any) {
+      $q.notify({ type: 'negative', message: error.message || 'Error updating progress' });
+      return false;
+    }
+  }
+
+  /**
+   * Submit task for review
+   */
+  async function submitForReview(taskId: string | number, completionComment: string, reviewerId: number | null) {
+    try {
+      const response = await taskService.submitForReview(taskId, {
+        completion_comment: completionComment,
+        reviewer_id: reviewerId,
+      });
+
+      if (response.success) {
+        $q.notify({ type: 'positive', message: 'Task submitted for review' });
+        await fetchFromDatabase();
+        await loadReviewHistory();
+        return true;
+      } else {
+        $q.notify({ type: 'negative', message: response.error || 'Failed to submit for review' });
+        return false;
+      }
+    } catch (error: any) {
+      $q.notify({ type: 'negative', message: error.message || 'Error submitting for review' });
+      return false;
+    }
+  }
+
+  /**
+   * Approve review
+   */
+  async function approveReview(taskId: string | number, reviewComment: string) {
+    try {
+      const response = await taskService.approveReview(taskId, {
+        review_comment: reviewComment,
+      });
+
+      if (response.success) {
+        $q.notify({ type: 'positive', message: 'Review approved' });
+        await fetchFromDatabase();
+        await loadPendingReviews();
+        return true;
+      } else {
+        $q.notify({ type: 'negative', message: response.error || 'Failed to approve review' });
+        return false;
+      }
+    } catch (error: any) {
+      $q.notify({ type: 'negative', message: error.message || 'Error approving review' });
+      return false;
+    }
+  }
+
+  /**
+   * Request changes on review
+   */
+  async function requestChanges(taskId: string | number, reviewComment: string) {
+    try {
+      const response = await taskService.requestChanges(taskId, {
+        review_comment: reviewComment,
+      });
+
+      if (response.success) {
+        $q.notify({ type: 'positive', message: 'Changes requested' });
+        await fetchFromDatabase();
+        await loadPendingReviews();
+        return true;
+      } else {
+        $q.notify({ type: 'negative', message: response.error || 'Failed to request changes' });
+        return false;
+      }
+    } catch (error: any) {
+      $q.notify({ type: 'negative', message: error.message || 'Error requesting changes' });
+      return false;
     }
   }
 
@@ -189,6 +363,11 @@ export function useEmployeeDashboard() {
     calculateAnalytics,
     loadPendingReviews,
     loadReviewHistory,
+    createSelfAssignedTask,
+    updateTaskProgress,
+    submitForReview,
+    approveReview,
+    requestChanges,
     getTaskById,
     getProjectById,
     getEmployeeById,

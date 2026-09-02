@@ -7,7 +7,7 @@
         <q-btn icon="close" flat round dense v-close-popup />
       </q-card-section>
 
-      <q-card-section class="q-pt-md">
+      <q-card-section class="q-pt-md q-pa-lg">
         <q-form @submit="onSubmit" class="q-gutter-md">
           <q-input
             v-model="form.name"

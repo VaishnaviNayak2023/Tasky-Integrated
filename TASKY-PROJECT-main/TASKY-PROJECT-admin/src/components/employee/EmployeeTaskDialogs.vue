@@ -1,46 +1,56 @@
 <template>
   <!-- Create Self-Assigned Task Dialog -->
   <q-dialog v-model="showCreateTaskDialog">
-    <q-card style="min-width: 500px">
+    <q-card style="min-width: 600px">
       <q-card-section>
         <div class="text-h6">Create Self-Assigned Task</div>
       </q-card-section>
-      <q-card-section class="q-pt-none">
-        <q-form @submit="$emit('create-task')">
+      <q-card-section class="q-pt-none q-pa-lg">
+        <q-form @submit.prevent="$emit('create-task')" class="q-gutter-md">
           <q-input
             v-model="newTask.title"
-            label="Task Title"
+            label="Task Title *"
             outlined
-            class="q-mb-md"
+            dense
             :rules="[(val) => !!val || 'Title is required']"
           />
           <q-input
             v-model="newTask.description"
             label="Description"
             outlined
+            dense
             type="textarea"
             rows="3"
-            class="q-mb-md"
           />
           <q-select
             v-model="newTask.projectId"
-            label="Project"
+            label="Project *"
             :options="projectsList.map((p) => ({ label: p.name, value: p.id }))"
             outlined
+            dense
             emit-value
             map-options
-            class="q-mb-md"
+            :rules="[(val) => !!val || 'Project is required']"
           />
-          <div class="row q-col-gutter-md q-mb-md">
+          <div class="row q-col-gutter-md">
             <div class="col-6">
-              <q-input v-model="newTask.deadline" label="Deadline" outlined type="date" />
+              <q-input 
+                v-model="newTask.deadline" 
+                label="Deadline *" 
+                outlined 
+                dense 
+                type="date"
+                :rules="[(val) => !!val || 'Deadline is required']"
+              />
             </div>
             <div class="col-6">
               <q-input
                 v-model.number="newTask.expectedEffort"
                 label="Expected Effort (hours)"
                 outlined
+                dense
                 type="number"
+                min="0"
               />
             </div>
           </div>
@@ -49,13 +59,13 @@
             label="Priority"
             :options="['critical', 'high', 'medium', 'low']"
             outlined
-            class="q-mb-md"
+            dense
           />
         </q-form>
       </q-card-section>
-      <q-card-actions align="right">
+      <q-card-actions align="right" class="q-pa-md">
         <q-btn flat label="Cancel" @click="$emit('update:show-create-task-dialog', false)" />
-        <q-btn color="primary" label="Create Task" @click="$emit('create-task')" />
+        <q-btn color="primary" label="Create Task" type="submit" />
       </q-card-actions>
     </q-card>
   </q-dialog>
@@ -69,7 +79,7 @@
       <q-card-section class="q-pt-none">
         <div v-if="selectedTask">
           <div class="q-mb-md">
-            <strong>Project:</strong> {{ getProjectById(selectedTask.projectId)?.name }}
+            <strong>Project:</strong> {{ getProjectByIdLocal(selectedTask.project_id)?.name }}
           </div>
           <div class="q-mb-md"><strong>Description:</strong> {{ selectedTask.description }}</div>
           <div class="row q-col-gutter-md q-mb-md">
@@ -97,7 +107,7 @@
               <strong>Deadline:</strong> {{ formatDate(selectedTask.deadline) }}
             </div>
             <div class="col-6">
-              <strong>Expected Effort:</strong> {{ selectedTask.expectedEffort }}h
+              <strong>Expected Effort:</strong> {{ selectedTask.expected_effort }}h
             </div>
           </div>
           <div class="q-mb-md">
@@ -113,14 +123,14 @@
           <div class="text-subtitle2 q-mb-md">Progress History</div>
           <q-timeline color="primary">
             <q-timeline-entry
-              v-for="update in getProgressUpdatesByTask(selectedTask.id)"
+              v-for="update in getProgressUpdatesByTaskLocal(selectedTask.id)"
               :key="update.id"
-              :title="`${update.previousProgress || 0}% → ${update.newProgress || 0}%`"
-              :subtitle="update.date || update.log_date"
+              :title="`${update.previous_progress || 0}% → ${update.new_progress || 0}%`"
+              :subtitle="update.created_at || update.log_date"
             >
               <div>{{ update.notes || update.work_completed }}</div>
               <div class="text-caption text-grey-6">
-                by {{ getEmployeeById((update.employeeId || update.user_id) as string || '')?.name }}
+                by {{ getEmployeeByIdLocal((update.user_id) as string || '')?.name }}
               </div>
             </q-timeline-entry>
           </q-timeline>
@@ -317,30 +327,57 @@ defineEmits<{
   'request-changes': [];
 }>();
 
-// Helper functions
-function getProjectById(_id: string | number): { name: string } | null {
-  // This would be passed from parent or accessed via a composable
-  return null;
+// Props
+const props = defineProps<{
+  showCreateTaskDialog: boolean;
+  showTaskDialog: boolean;
+  showUpdateProgressDialog: boolean;
+  showSubmitReviewDialog: boolean;
+  showReviewDialog: boolean;
+  selectedTask: any;
+  selectedReviewTask: any;
+  newTask: any;
+  progressUpdate: number;
+  statusUpdate: string;
+  hoursSpent: number;
+  completionComment: string;
+  reviewComment: string;
+  selectedReviewer: number | null;
+  reviewerOptions: Array<{ label: string; value: number }>;
+  projectsList: any[];
+  updating: boolean;
+  reviewing: boolean;
+  getTaskById: (id: string | number) => any;
+  getProjectById: (id: string | number) => any;
+  getEmployeeById: (id: string | number) => any;
+  getProgressUpdatesByTask: (taskId: string | number) => any[];
+}>();
+
+// Emits
+defineEmits<{
+  'update:show-create-task-dialog': [value: boolean];
+  'update:show-task-dialog': [value: boolean];
+  'update:show-update-progress-dialog': [value: boolean];
+  'update:show-submit-review-dialog': [value: boolean];
+  'update:show-review-dialog': [value: boolean];
+  'create-task': [];
+  'update-progress': [];
+  'submit-review': [];
+  'approve-review': [];
+  'request-changes': [];
+}>();
+
+// Helper functions using props
+function getProjectByIdLocal(id: string | number) {
+  return props.getProjectById(id);
 }
 
-function getEmployeeById(_id: string | number): { name: string } | null {
-  // This would be passed from parent or accessed via a composable
-  return null;
+function getEmployeeByIdLocal(id: string | number) {
+  return props.getEmployeeById(id);
 }
 
-function getProgressUpdatesByTask(_taskId: string | number): Array<{
-  id: string;
-  previousProgress?: number;
-  newProgress?: number;
-  date?: string;
-  log_date?: string;
-  notes?: string;
-  work_completed?: string;
-  employeeId?: string;
-  user_id?: string;
-}> {
-  // This would be passed from parent or accessed via a composable
-  return [];
+function getProgressUpdatesByTaskLocal(taskId: string | number) {
+  return props.getProgressUpdatesByTask(taskId);
 }
 
 function formatDate(date: string) {

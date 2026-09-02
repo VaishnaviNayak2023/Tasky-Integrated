@@ -42,6 +42,9 @@ export function useTasksPage() {
   const assigning = ref(false);
   const finalizing = ref(false);
 
+  // Debounced search
+  let searchTimeout: NodeJS.Timeout | null = null;
+
   // Project options
   const projectOptions = computed(() => {
     const opts = [{ label: 'All Projects', value: 'all' }];
@@ -82,6 +85,16 @@ export function useTasksPage() {
 
   const applyFilters = async () => {
     await taskStore.fetchTasks(filters.value);
+  };
+
+  const handleSearchChange = (value: string) => {
+    if (searchTimeout) {
+      clearTimeout(searchTimeout);
+    }
+    searchTimeout = setTimeout(() => {
+      filters.value.search = value;
+      applyFilters();
+    }, 300);
   };
 
   const clearFilters = () => {
@@ -224,6 +237,7 @@ export function useTasksPage() {
 
     // Functions
     applyFilters,
+    handleSearchChange,
     clearFilters,
     logout,
     openCreateDialog,

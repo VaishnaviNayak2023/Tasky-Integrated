@@ -15,21 +15,34 @@ export const useNotificationStore = defineStore('notification', {
   actions: {
     getHeaders() {
       const auth = useAuthStore();
-      return { Authorization: `Bearer ${auth.token}` };
+      const token = auth.token || localStorage.getItem('tasky_token');
+      return { 
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+      };
     },
 
     async fetchNotifications() {
       this.loading = true;
+      this.error = null;
       try {
         const response = await fetch('http://localhost:3001/api/pm/notifications', {
           headers: this.getHeaders(),
         });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const data = await response.json();
         if (data.success) {
-          this.notifications = data.notifications;
+          this.notifications = data.notifications || [];
+        } else {
+          this.error = data.error || 'Failed to fetch notifications';
         }
       } catch (err: any) {
         this.error = err.message;
+        console.error('Fetch notifications error:', err);
       } finally {
         this.loading = false;
       }
@@ -41,13 +54,20 @@ export const useNotificationStore = defineStore('notification', {
           method: 'PUT',
           headers: this.getHeaders(),
         });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const data = await response.json();
         if (data.success) {
           const n = this.notifications.find((n) => n.id == id);
           if (n) n.is_read = 1;
+        } else {
+          console.error('Mark as read failed:', data.error);
         }
       } catch (err: any) {
-        console.error(err);
+        console.error('Mark as read error:', err);
       }
     },
 
@@ -57,12 +77,19 @@ export const useNotificationStore = defineStore('notification', {
           method: 'PUT',
           headers: this.getHeaders(),
         });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const data = await response.json();
         if (data.success) {
           this.notifications.forEach((n) => (n.is_read = 1));
+        } else {
+          console.error('Mark all as read failed:', data.error);
         }
       } catch (err: any) {
-        console.error(err);
+        console.error('Mark all as read error:', err);
       }
     },
   },

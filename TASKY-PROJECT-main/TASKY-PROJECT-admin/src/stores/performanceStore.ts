@@ -142,6 +142,7 @@ export const usePerformanceStore = defineStore('performance', () => {
     loading.value = true;
     error.value = null;
     try {
+      console.log('Loading dashboard data with filters:', filters);
       await Promise.all([
         fetchDashboardSummary(filters),
         fetchProductivityTrend(filters),
@@ -149,9 +150,15 @@ export const usePerformanceStore = defineStore('performance', () => {
         fetchGoalProgress(filters),
         fetchPerformanceInsights(filters),
       ]);
+      console.log('Dashboard data loaded successfully');
     } catch (err: any) {
       error.value = err.message;
       console.error('Failed to load dashboard data:', err);
+      console.error('Error details:', {
+        message: err.message,
+        stack: err.stack,
+        name: err.name
+      });
     } finally {
       loading.value = false;
     }

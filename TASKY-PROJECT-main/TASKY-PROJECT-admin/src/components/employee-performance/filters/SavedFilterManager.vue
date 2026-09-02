@@ -40,13 +40,13 @@
         <q-tab-panels v-model="activeTab" animated>
           <q-tab-panel name="all">
             <q-list separator>
-              <q-item v-for="preset in filteredPresets" :key="preset.id" clickable @click="loadPreset(preset)">
+              <q-item v-for="preset in filteredPresets" :key="preset.id || preset.name" clickable @click="loadPreset(preset)">
                 <q-item-section avatar>
                   <q-icon :name="preset.isFavorite ? 'star' : 'bookmark_border'" :color="preset.isFavorite ? 'amber' : 'grey-6'" />
                 </q-item-section>
                 <q-item-section>
                   <q-item-label>{{ preset.name }}</q-item-label>
-                  <q-item-label caption>{{ formatDate(preset.updatedAt) }}</q-item-label>
+                  <q-item-label caption>{{ formatDate(preset.updatedAt || '') }}</q-item-label>
                 </q-item-section>
                 <q-item-section side>
                   <div class="row q-gutter-xs">
@@ -101,13 +101,13 @@
 
           <q-tab-panel name="favorites">
             <q-list separator>
-              <q-item v-for="preset in favoritePresets" :key="preset.id" clickable @click="loadPreset(preset)">
+              <q-item v-for="preset in favoritePresets" :key="preset.id || preset.name" clickable @click="loadPreset(preset)">
                 <q-item-section avatar>
                   <q-icon name="star" color="amber" />
                 </q-item-section>
                 <q-item-section>
                   <q-item-label>{{ preset.name }}</q-item-label>
-                  <q-item-label caption>{{ formatDate(preset.updatedAt) }}</q-item-label>
+                  <q-item-label caption>{{ formatDate(preset.updatedAt || '') }}</q-item-label>
                 </q-item-section>
               </q-item>
               <q-item v-if="favoritePresets.length === 0">
@@ -120,13 +120,13 @@
 
           <q-tab-panel name="shared">
             <q-list separator>
-              <q-item v-for="preset in sharedPresets" :key="preset.id" clickable @click="loadPreset(preset)">
+              <q-item v-for="preset in sharedPresets" :key="preset.id || preset.name" clickable @click="loadPreset(preset)">
                 <q-item-section avatar>
                   <q-icon name="share" color="primary" />
                 </q-item-section>
                 <q-item-section>
                   <q-item-label>{{ preset.name }}</q-item-label>
-                  <q-item-label caption>{{ formatDate(preset.updatedAt) }}</q-item-label>
+                  <q-item-label caption>{{ formatDate(preset.updatedAt || '') }}</q-item-label>
                 </q-item-section>
               </q-item>
               <q-item v-if="sharedPresets.length === 0">

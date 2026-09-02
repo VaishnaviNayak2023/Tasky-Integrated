@@ -61,25 +61,21 @@
             <q-badge color="positive" class="q-pa-sm"> {{ completionRate }}% completion </q-badge>
           </div>
 
-          <div class="chart-area q-mt-xl">
-            <div v-for="item in completionData" :key="item.day" class="chart-column">
-              <div class="chart-value">
+          <div class="row items-end justify-around q-mt-xl" style="height: 260px; border-bottom: 1px solid #e5e7eb">
+            <div v-for="item in completionData" :key="item.day" class="column items-end justify-center" style="min-width: 45px; height: 100%">
+              <div class="text-weight-bold q-mb-sm">
                 {{ item.completed }}
               </div>
 
-              <div class="chart-bars">
+              <div class="row items-end" style="height: 190px; gap: 5px">
                 <div
-                  class="chart-bar"
-                  :style="{
-                    height: `${item.assigned * 15}px`,
-                  }"
+                  class="bg-grey-4"
+                  :style="{ width: '20px', borderRadius: '5px 5px 0 0', height: `${item.assigned * 15}px` }"
                 />
 
                 <div
-                  class="chart-bar completed-bar"
-                  :style="{
-                    height: `${item.completed * 15}px`,
-                  }"
+                  class="bg-deep-purple"
+                  :style="{ width: '20px', borderRadius: '5px 5px 0 0', height: `${item.completed * 15}px` }"
                 />
               </div>
 
@@ -91,12 +87,12 @@
 
           <div class="row justify-center q-gutter-lg q-mt-md">
             <div class="row items-center q-gutter-xs">
-              <div class="legend-box assigned" />
+              <div class="bg-grey-4" style="width: 12px; height: 12px; border-radius: 3px" />
               <span class="text-caption"> Assigned </span>
             </div>
 
             <div class="row items-center q-gutter-xs">
-              <div class="legend-box completed" />
+              <div class="bg-deep-purple" style="width: 12px; height: 12px; border-radius: 3px" />
               <span class="text-caption"> Completed </span>
             </div>
           </div>
@@ -111,17 +107,26 @@
 
           <div class="text-body2 text-grey-6 q-mt-xs">Your on-time completion pattern</div>
 
-          <div class="donut-wrapper q-mt-xl">
+          <div class="row justify-center q-mt-xl">
             <div
-              class="donut"
+              class="rounded-borders"
               :style="{
+                width: '190px',
+                height: '190px',
+                borderRadius: '50%',
                 background: `conic-gradient(
                   #7c4dff ${onTimeRate}%,
                   #edf0f5 ${onTimeRate}% 100%
                 )`,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
               }"
             >
-              <div class="donut-center">
+              <div
+                class="bg-white rounded-borders"
+                style="width: 130px; height: 130px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center"
+              >
                 <div class="text-h5 text-weight-bold">{{ onTimeRate }}%</div>
 
                 <div class="text-caption text-grey-6">On time</div>
@@ -157,20 +162,22 @@
 
           <div class="text-body2 text-grey-6">How your workload has changed</div>
 
-          <div class="workload-chart q-mt-xl">
-            <div v-for="item in workloadData" :key="item.week" class="workload-item">
+          <div class="q-mt-xl">
+            <div v-for="item in workloadData" :key="item.week" class="relative-position bg-grey-2 rounded-borders q-mb-md" style="height: 42px; padding: 0 14px; overflow: hidden">
               <div
-                class="workload-fill"
+                class="absolute-top-left"
                 :style="{
                   width: `${item.value}%`,
+                  height: '100%',
+                  background: '#e3dcff',
                 }"
               />
 
-              <span>
+              <span class="relative-position">
                 {{ item.week }}
               </span>
 
-              <strong> {{ item.value }}% </strong>
+              <strong class="relative-position float-right"> {{ item.value }}% </strong>
             </div>
           </div>
         </q-card>
@@ -593,111 +600,5 @@ const effortData = computed(() => {
 </script>
 
 <style scoped>
-.chart-area {
-  height: 260px;
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-around;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.chart-column {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  align-items: center;
-  min-width: 45px;
-}
-
-.chart-bars {
-  height: 190px;
-  display: flex;
-  align-items: flex-end;
-  gap: 5px;
-}
-
-.chart-bar {
-  width: 20px;
-  background: #d9dce5;
-  border-radius: 5px 5px 0 0;
-}
-
-.completed-bar {
-  background: #7c4dff;
-}
-
-.chart-value {
-  font-weight: 700;
-  margin-bottom: 5px;
-}
-
-.legend-box {
-  width: 12px;
-  height: 12px;
-  border-radius: 3px;
-}
-
-.assigned {
-  background: #d9dce5;
-}
-
-.completed {
-  background: #7c4dff;
-}
-
-.donut-wrapper {
-  display: flex;
-  justify-content: center;
-}
-
-.donut {
-  width: 190px;
-  height: 190px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.donut-center {
-  width: 130px;
-  height: 130px;
-  background: white;
-  border-radius: 50%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-}
-
-.workload-item {
-  position: relative;
-  height: 42px;
-  background: #f0f1f5;
-  border-radius: 7px;
-  margin-bottom: 14px;
-  display: flex;
-  align-items: center;
-  padding: 0 14px;
-  overflow: hidden;
-}
-
-.workload-fill {
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  background: #e3dcff;
-}
-
-.workload-item span,
-.workload-item strong {
-  position: relative;
-  z-index: 1;
-}
-
-.workload-item strong {
-  margin-left: auto;
-}
+/* Custom styles - most have been replaced with Quasar utilities */
 </style>

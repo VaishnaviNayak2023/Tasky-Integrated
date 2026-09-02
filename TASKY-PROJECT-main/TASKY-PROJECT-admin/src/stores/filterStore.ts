@@ -105,8 +105,13 @@ export const useFilterStore = defineStore('filter', () => {
     error.value = null;
     try {
       // Try to load from API first
-      savedPresets.value = await performanceApi.getFilterPresets(pageType);
-      
+      const apiPresets = await performanceApi.getFilterPresets(pageType);
+      // Convert API presets to FilterEngine format
+      savedPresets.value = apiPresets.map((p) => ({
+        ...p,
+        filterJson: p.filterJson as FilterGroup,
+      }));
+
       // Also load from localStorage as fallback
       FilterEngine.loadFromLocalStorage(pageType);
       const localState = FilterEngine.getFilterState(pageType);
@@ -138,23 +143,29 @@ export const useFilterStore = defineStore('filter', () => {
       // Save to API
       const apiPreset = await performanceApi.createFilterPreset(preset);
       
+      // Convert API preset to FilterEngine format
+      const convertedPreset: FilterPreset = {
+        ...apiPreset,
+        filterJson: apiPreset.filterJson as FilterGroup,
+      };
+
       // Also save to localStorage as backup
       FilterEngine.savePreset(preset.pageType, {
         ...preset,
-        id: apiPreset.id,
-        createdAt: apiPreset.createdAt,
-        updatedAt: apiPreset.updatedAt,
+        id: convertedPreset.id,
+        createdAt: convertedPreset.createdAt,
+        updatedAt: convertedPreset.updatedAt,
       });
-      
+
       // Update local state
-      const existingIndex = savedPresets.value.findIndex((p) => p.id === apiPreset.id);
+      const existingIndex = savedPresets.value.findIndex((p) => p.id === convertedPreset.id);
       if (existingIndex >= 0) {
-        savedPresets.value[existingIndex] = apiPreset;
+        savedPresets.value[existingIndex] = convertedPreset;
       } else {
-        savedPresets.value.push(apiPreset);
+        savedPresets.value.push(convertedPreset);
       }
-      
-      return apiPreset;
+
+      return convertedPreset;
     } catch (err: any) {
       error.value = err.message;
       console.error('Failed to save preset:', err);
@@ -179,20 +190,26 @@ export const useFilterStore = defineStore('filter', () => {
     try {
       // Update in API
       const apiPreset = await performanceApi.updateFilterPreset(id, updates);
-      
+
+      // Convert API preset to FilterEngine format
+      const convertedPreset: FilterPreset = {
+        ...apiPreset,
+        filterJson: apiPreset.filterJson as FilterGroup,
+      };
+
       // Update in localStorage
       const preset = savedPresets.value.find((p) => p.id === id);
       if (preset) {
-        FilterEngine.savePreset(preset.pageType, { ...preset, ...apiPreset });
+        FilterEngine.savePreset(preset.pageType, { ...preset, ...convertedPreset });
       }
-      
+
       // Update local state
       const index = savedPresets.value.findIndex((p) => p.id === id);
       if (index >= 0) {
-        savedPresets.value[index] = apiPreset;
+        savedPresets.value[index] = convertedPreset;
       }
-      
-      return apiPreset;
+
+      return convertedPreset;
     } catch (err: any) {
       error.value = err.message;
       console.error('Failed to update preset:', err);

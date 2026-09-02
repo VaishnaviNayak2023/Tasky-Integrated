@@ -98,7 +98,7 @@ function renderChart() {
       d3
         .axisLeft(yScale)
         .tickSize(-innerWidth)
-        .tickFormat('')
+        .tickFormat(null)
     )
     .selectAll('line')
     .attr('stroke', '#e0e0e0')
@@ -123,7 +123,7 @@ function renderChart() {
       .append('path')
       .datum(lineData)
       .attr('fill', 'none')
-      .attr('stroke', colorScale(priority))
+      .attr('stroke', colorScale(priority) as string)
       .attr('stroke-width', 2)
       .attr('d', line as any);
 
@@ -136,8 +136,8 @@ function renderChart() {
       .attr('cx', (d) => xScale(d.period) || 0)
       .attr('cy', (d) => yScale(d.value))
       .attr('r', 4)
-      .attr('fill', colorScale(priority))
-      .on('mouseover', function (event, d) {
+      .attr('fill', colorScale(priority) as string)
+      .on('mouseover', function (_event, _d) {
         d3.select(this).attr('r', 6);
       })
       .on('mouseout', function () {
@@ -162,7 +162,7 @@ function renderChart() {
     .append('rect')
     .attr('width', 12)
     .attr('height', 12)
-    .attr('fill', (d) => colorScale(d))
+    .attr('fill', (d) => colorScale(d) as string)
     .attr('rx', 2);
 
   legendItems

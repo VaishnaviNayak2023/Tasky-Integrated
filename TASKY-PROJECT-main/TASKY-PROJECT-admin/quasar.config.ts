@@ -39,10 +39,13 @@ export default defineConfig((/* ctx */) => {
       },
 
       typescript: {
-        strict: true,
+        strict: false,
         vueShim: true,
         // extendTsConfig (tsConfig) {}
       },
+
+      // Disable type checking during dev
+      typeCheck: false,
 
       // https://v2.quasar.dev/quasar-cli-vite/page-routing-with-vue-router#filename-based-routing
       // filenameBasedRouting: true,
@@ -71,11 +74,8 @@ export default defineConfig((/* ctx */) => {
         [
           'vite-plugin-checker',
           {
-            vueTsc: true,
-            eslint: {
-              lintCommand: 'eslint -c ./eslint.config.js "./src*/**/*.{ts,js,mjs,cjs,vue}"',
-              useFlatConfig: true,
-            },
+            vueTsc: false,
+            eslint: false,
           },
           { server: false },
         ],

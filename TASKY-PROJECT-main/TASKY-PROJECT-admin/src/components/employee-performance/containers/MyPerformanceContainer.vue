@@ -131,7 +131,7 @@
           :data="productivityTrend"
           :loading="loading"
           :error="error"
-          height="300"
+          :height="300"
         />
 
         <div class="row q-gutter-lg q-mt-md">
@@ -194,7 +194,7 @@
               :data="timeAllocation"
               :loading="loading"
               :error="error"
-              height="300"
+              :height="300"
             />
           </q-card>
         </div>
@@ -250,7 +250,7 @@
 
     <!-- DIALOGS -->
     <ExportDialog ref="exportDialog" />
-    <ShareReportDialog ref="shareDialog" @share="handleShare" />
+    <ShareReportDialog ref="shareDialog" />
     <SavedFilterManager ref="savedFilterManager" page-type="my_performance" :current-filter="currentFilter" @load-preset="handleLoadPreset" />
   </q-page>
 </template>

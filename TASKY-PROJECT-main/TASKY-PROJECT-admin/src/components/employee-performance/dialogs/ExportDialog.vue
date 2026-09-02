@@ -124,7 +124,7 @@ async function handleExport() {
 
     if (dateRange.value) {
       const dates = dateRange.value.split(' to ');
-      if (dates.length === 2) {
+      if (dates.length === 2 && dates[0] && dates[1]) {
         options.dateRange = {
           start: dates[0],
           end: dates[1],

@@ -129,7 +129,7 @@
           :data="priorityTrend"
           :loading="loading"
           :error="error"
-          height="300"
+          :height="300"
         />
       </q-card>
 
@@ -143,7 +143,7 @@
               :data="priorityMetrics"
               :loading="loading"
               :error="error"
-              height="300"
+              :height="300"
             />
           </q-card>
         </div>

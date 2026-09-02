@@ -1,9 +1,9 @@
-import { defineRouter } from '#q-app';
+
 import {
   createMemoryHistory,
-  createRouter,
   createWebHashHistory,
   createWebHistory,
+  createRouter,
 } from 'vue-router';
 
 import routes from './routes';
@@ -18,7 +18,7 @@ import { useAuthStore } from '@/stores/authStore';
  * with the Router instance.
  */
 
-export default defineRouter((/* { store, ssrContext } */) => {
+export default (/* { store, ssrContext } */) => {
   const createHistory = import.meta.env.QUASAR_SERVER
     ? createMemoryHistory
     : import.meta.env.QUASAR_VUE_ROUTER_MODE === 'history'
@@ -36,13 +36,13 @@ export default defineRouter((/* { store, ssrContext } */) => {
   });
 
   // Navigation guards
-  Router.beforeEach((to, from, next) => {
+  Router.beforeEach((to: any, from: any, next: any) => {
     const authStore = useAuthStore();
 
     // Initialize auth state from localStorage
     authStore.initializeAuth();
 
-    const requiresAuth = to.matched.some((record) => record.meta.requiresAuth);
+    const requiresAuth = to.matched.some((record: any) => record.meta.requiresAuth);
     const requiresRole = to.meta.requiresRole as 'pm' | 'employee' | undefined;
 
     // Allow landing page and auth routes to be accessible without authentication
@@ -75,5 +75,6 @@ export default defineRouter((/* { store, ssrContext } */) => {
       next();
     }
   });
+
   return Router;
-});
+};

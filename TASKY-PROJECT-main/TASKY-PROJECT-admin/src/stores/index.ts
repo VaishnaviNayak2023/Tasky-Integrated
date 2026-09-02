@@ -1,4 +1,3 @@
-import { defineStore } from '#q-app';
 import { createPinia } from 'pinia';
 
 /*
@@ -22,11 +21,11 @@ declare module 'pinia' {
  * with the Store instance.
  */
 
-export default defineStore((/* { ssrContext } */) => {
+export default (/* { ssrContext } */) => {
   const pinia = createPinia();
 
   // You can add Pinia plugins here
   // pinia.use(SomePiniaPlugin)
 
   return pinia;
-});
+};

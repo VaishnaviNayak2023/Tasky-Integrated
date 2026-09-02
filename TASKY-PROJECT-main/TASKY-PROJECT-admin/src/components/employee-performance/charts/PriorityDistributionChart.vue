@@ -97,20 +97,20 @@ function renderChart() {
   arcs
     .append('path')
     .attr('d', arc as any)
-    .attr('fill', (d) => colorScale(d.data.priority))
+    .attr('fill', (d) => colorScale(d.data.priority) as string)
     .attr('stroke', '#fff')
     .attr('stroke-width', 2)
-    .on('mouseover', function (event, d) {
+    .on('mouseover', function (_event, _d) {
       d3.select(this).transition().duration(200).attr('d', arcHover as any);
     })
-    .on('mouseout', function (event, d) {
+    .on('mouseout', function (_event, _d) {
       d3.select(this).transition().duration(200).attr('d', arc as any);
     });
 
   // Add labels
   arcs
     .append('text')
-    .attr('transform', (d) => `translate(${arc.centroid(d as any)})`)
+    .attr('transform', (d) => `translate(${arc.centroid(d as any).join(',')})`)
     .attr('text-anchor', 'middle')
     .attr('font-size', '11px')
     .attr('fill', '#fff')
@@ -149,7 +149,7 @@ function renderChart() {
     .append('rect')
     .attr('width', 12)
     .attr('height', 12)
-    .attr('fill', (d) => colorScale(d.priority))
+    .attr('fill', (d) => colorScale(d.priority) as string)
     .attr('rx', 2);
 
   legendItems

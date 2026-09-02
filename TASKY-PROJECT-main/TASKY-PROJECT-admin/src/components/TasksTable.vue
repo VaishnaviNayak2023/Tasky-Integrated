@@ -313,6 +313,7 @@ import { ref, computed } from 'vue';
 import type { QTableProps } from 'quasar';
 import { usePmTaskStore } from '../stores/pmTaskStore';
 import { date } from 'quasar';
+import { getPriorityColor, getStatusColor } from '../constants';
 
 const taskStore = usePmTaskStore();
 
@@ -342,21 +343,6 @@ const formatName = (val: string) => {
 const formatDate = (val: string) => {
   if (!val) return '';
   return date.formatDate(val, 'MMM D, YYYY');
-};
-
-const getPriorityColor = (priority: string) => {
-  if (priority === 'critical') return 'red';
-  if (priority === 'high') return 'orange';
-  if (priority === 'medium') return 'blue';
-  return 'grey';
-};
-
-const getStatusColor = (status: string) => {
-  if (status === 'completed') return 'green';
-  if (status === 'in-progress') return 'blue';
-  if (status === 'blocked') return 'red';
-  if (status === 'not-started') return 'grey';
-  return 'grey';
 };
 
 const getProgressColor = (progress: number) => {

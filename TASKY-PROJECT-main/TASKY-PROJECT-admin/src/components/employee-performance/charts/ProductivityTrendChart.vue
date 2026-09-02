@@ -97,7 +97,7 @@ function renderChart() {
       d3
         .axisLeft(yScale)
         .tickSize(-innerWidth)
-        .tickFormat('')
+        .tickFormat(null)
     )
     .selectAll('line')
     .attr('stroke', '#e0e0e0')
@@ -118,7 +118,7 @@ function renderChart() {
     .enter()
     .append('g')
     .attr('class', 'group')
-    .attr('fill', (d) => colorScale(d.key as string));
+    .attr('fill', (d) => colorScale(d.key as string) as string);
 
   // Create bars
   groups
@@ -126,13 +126,13 @@ function renderChart() {
     .data((d) => d)
     .enter()
     .append('rect')
-    .attr('x', (d) => xScale(d.data.period) || 0)
+    .attr('x', (d) => (xScale(d.data.period) || 0) as any)
     .attr('y', (d) => yScale(d[1]))
     .attr('height', (d) => Math.abs(yScale(d[0]) - yScale(d[1])))
     .attr('width', xScale.bandwidth())
     .attr('rx', 4)
     .attr('ry', 4)
-    .on('mouseover', function (event, d) {
+    .on('mouseover', function (_event, _d) {
       d3.select(this).attr('opacity', 0.8);
     })
     .on('mouseout', function () {
@@ -156,7 +156,7 @@ function renderChart() {
     .append('rect')
     .attr('width', 12)
     .attr('height', 12)
-    .attr('fill', (d) => colorScale(d))
+    .attr('fill', (d) => colorScale(d) as string)
     .attr('rx', 2);
 
   legendItems
